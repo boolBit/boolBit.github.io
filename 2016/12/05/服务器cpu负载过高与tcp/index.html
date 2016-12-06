@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>服务器cpu占用过高问题 | boolBit&#39;s blog | null</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="theme-color" content="#3F51B5">
+  
+  
+  <meta name="keywords" content="tcp cpu">
+  <meta name="description" content="排查java程序之前公司网页项目有两台服务器，出现过cpu负载过高的情况，阿里云频繁报警。一开始以为是程序代码问题，通过top命令观察，java进程的负载比较平均都是比较低的，拿了一个进程按以下步骤查看：
+
+top -H -p pid   找到cpu负载比较高的线程，将其id转换成16进制。
+执行jstack -l pid &amp;gt; /tmp/out.txt, 获取dump文件，查询id所在线程，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="服务器cpu占用过高问题">
+<meta property="og:url" content="http://boolbit.info/2016/12/05/服务器cpu负载过高与tcp/index.html">
+<meta property="og:site_name" content="boolBit's blog">
+<meta property="og:description" content="排查java程序之前公司网页项目有两台服务器，出现过cpu负载过高的情况，阿里云频繁报警。一开始以为是程序代码问题，通过top命令观察，java进程的负载比较平均都是比较低的，拿了一个进程按以下步骤查看：
+
+top -H -p pid   找到cpu负载比较高的线程，将其id转换成16进制。
+执行jstack -l pid &amp;gt; /tmp/out.txt, 获取dump文件，查询id所在线程，">
+<meta property="og:image" content="http://yangege.b0.upaiyun.com/product/d7812d64205.jpg">
+<meta property="og:image" content="http://yangege.b0.upaiyun.com/product/2e51096e3886b.png">
+<meta property="og:updated_time" content="2016-12-06T03:43:50.169Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="服务器cpu占用过高问题">
+<meta name="twitter:description" content="排查java程序之前公司网页项目有两台服务器，出现过cpu负载过高的情况，阿里云频繁报警。一开始以为是程序代码问题，通过top命令观察，java进程的负载比较平均都是比较低的，拿了一个进程按以下步骤查看：
+
+top -H -p pid   找到cpu负载比较高的线程，将其id转换成16进制。
+执行jstack -l pid &amp;gt; /tmp/out.txt, 获取dump文件，查询id所在线程，">
+<meta name="twitter:image" content="http://yangege.b0.upaiyun.com/product/d7812d64205.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="boolBit&#39;s blog" type="application/atom+xml">
+  
+  <meta name="summary" content="null">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="loading" class="active"></div>
+
+  <nav id="menu" class="hide" >
+   <div class="inner flex-row-vertical">
+  <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+      <i class="icon icon-lg icon-close"></i>
+  </a>
+  <div class="brand-wrap">
+    <div class="brand">
+      <a href="/" class="avatar"><img src="/img/logo.jpg"></a>
+      <hgroup class="introduce">
+        <h5 class="nickname">boolBit</h5>
+        <a href="mailto:582076225@qq.com" title="582076225@qq.com" class="mail">582076225@qq.com</a>
+      </hgroup>
+    </div>
+  </div>
+  <div class="scroll-wrap flex-col">
+    <ul class="nav">
+      
+          <li class="waves-block waves-effect">
+            <a href="/"  >
+              <i class="icon icon-lg icon-home"></i>
+              主页
+            </a>
+          </li>
+      
+          <li class="waves-block waves-effect">
+            <a href="/archives"  >
+              <i class="icon icon-lg icon-archives"></i>
+              Archives
+            </a>
+          </li>
+      
+          <li class="waves-block waves-effect">
+            <a href="/tags"  >
+              <i class="icon icon-lg icon-tags"></i>
+              Tags
+            </a>
+          </li>
+      
+    </ul>
+
+    <footer class="footer">
+  <p><a rel="license" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0;vertical-align:middle;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA4UlEQVR42q2T1xqCMAyFk7QsBQeKA9x7j/d/OSm22CpX0nzcpA1/T05aAOuBVkMAScQFHLnEwoCo2f1TnQIGoVMewjZEjVFN4GH1Ue1Cn2jWqwfsOOj6wDwGvotsl/c8lv7KIq1eLOsT0HMFHMIE/RZyHnlphryT9zyV+8WH5e8yQw3wnQvgAFxPTKUVi555SHR/lOfLMgVTeDlSfN+TaoUsiTyeIm+bCkHvCA2FUKG48LDtYBZBknsYP/G8NTw0gaaHyuQf4H5pecrB/FYCT2sL9zAfy1Xyjou6L8X2W7YcLyBZCRtnq/zfAAAAAElFTkSuQmCC" /></a></p>
+  <p>boolBit&#39;s blog &copy; 2016</p>
+  <p>Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme
+  <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a></p>
+  <a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-2x icon-rss-square"></i></a>
+</footer>
+
+  </div>
+</div>
+
+  </nav>
+  <main id="main">
+    <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">服务器cpu占用过高问题</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input " autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-share">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header">
+  <div class="container">
+    <h1 class="author">服务器cpu占用过高问题</h1>
+    <h5 class="subtitle">
+        
+            <time datetime="2016-12-05T07:35:50.000Z" itemprop="datePublished" class="page-time">
+  2016-12-05
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/总结/">总结</a></li></ul>
+
+        
+    </h5>
+  </div>
+</header>
+
+    <div class="container body-wrap">
+      <article id="post-服务器cpu负载过高与tcp" 
+  class="article article-type-post" itemprop="blogPost">
+    <div class="post-meta flex-row">
+        
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tcp-cpu/">tcp cpu</a></li></ul>
+
+    </div>
+    <div class="post-body">
+        <aside class="post-widget" id="post-widget">
+
+            
+            <div class="post-share" id="post-share">
+    <div class="tit">分享到：</div>
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" href="javascript:;" data-title="微博" data-service="tsina">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns" href="javascript:;" data-title="微信" data-service="weixin">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" href="javascript:;" data-title=" QQ" data-service="cqq">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" href="javascript:;" data-title=" Facebook" data-service="fb">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" href="javascript:;" data-title=" Twitter" data-service="twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="douban share-sns" href="javascript:;" data-title="豆瓣" data-service="douban">
+          豆
+        </a>
+      </li>
+    </ul>
+ </div>
+
+            
+
+            
+            <nav class="post-toc-wrap" id="post-toc">
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#排查java程序"><span class="post-toc-text">排查java程序</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#排查网络情况："><span class="post-toc-text">排查网络情况：</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#修改系统的-etc-sysctl-conf配置来减少TIME-WAIT的tcp连接："><span class="post-toc-text">修改系统的/etc/sysctl.conf配置来减少TIME_WAIT的tcp连接：</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#详解tcp"><span class="post-toc-text">详解tcp</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#tcp-三次握手-四次握手"><span class="post-toc-text">tcp  三次握手, 四次握手</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#为什么会有连接需要三次握手和断开需要四次握手？"><span class="post-toc-text">为什么会有连接需要三次握手和断开需要四次握手？</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#TCP重传机制"><span class="post-toc-text">TCP重传机制</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#超时重传机制"><span class="post-toc-text">超时重传机制</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#快速重传机制"><span class="post-toc-text">快速重传机制</span></a></li></ol></li></ol>
+            </nav>
+            
+        </aside>
+
+        <div class="post-main">
+
+            <div class="post-content" id="post-content" itemprop="postContent">
+            <h1 id="排查java程序"><a href="#排查java程序" class="headerlink" title="排查java程序"></a>排查java程序</h1><p>之前公司网页项目有两台服务器，出现过cpu负载过高的情况，阿里云频繁报警。一开始以为是程序代码问题，通过top命令观察，java进程的负载比较平均都是比较低的，拿了一个进程按以下步骤查看：</p>
+<ol>
+<li>top -H -p pid   找到cpu负载比较高的线程，将其id转换成16进制。</li>
+<li>执行jstack -l pid &gt; /tmp/out.txt, 获取dump文件，查询id所在线程，并不是gc线程，也不是程序线程，而是tomcat线程，这种线程比较多，怀疑是大量这种线程导致cpu占用过高了。 之后在一台正常的服务器上比较了下，tomcat线程数差不多，故排除是程序代码问题，因此极有可能是服务器硬件或者网络出现了异常。</li>
+</ol>
+<h1 id="排查网络情况："><a href="#排查网络情况：" class="headerlink" title="排查网络情况："></a>排查网络情况：</h1><p>执行 <code>netstat -n | awk &#39;/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}&#39;</code> 发现大量的time_wait 端口， 可能是因为服务器频繁释放链接，导致新的链接创建不了。<br>time_wait 阶段是指主动关闭链接的一方在四次握手最后一个阶段，还会等待2个报文最大生存时间（msl）默认是120s，才会关闭链接.</p>
+<h1 id="修改系统的-etc-sysctl-conf配置来减少TIME-WAIT的tcp连接："><a href="#修改系统的-etc-sysctl-conf配置来减少TIME-WAIT的tcp连接：" class="headerlink" title="修改系统的/etc/sysctl.conf配置来减少TIME_WAIT的tcp连接："></a>修改系统的/etc/sysctl.conf配置来减少TIME_WAIT的tcp连接：</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">vi /etc/sysctl.conf</div><div class="line"></div><div class="line">net.ipv4.tcp_syncookies = 1  （表示开启SYN Cookies。当出现SYN等待队列溢出时，启用cookies来处理，可防范少量SYN攻击，默认为0，表示关闭）</div><div class="line">net.ipv4.tcp_tw_reuse = 1  （表示开启重用。允许将TIME-WAIT sockets重新用于新的TCP连接，默认为0，表示关闭）</div><div class="line">net.ipv4.tcp_tw_recycle = 1   （表示开启TCP连接中TIME-WAIT sockets的快速回收，默认为0，表示关闭。）</div><div class="line">net.ipv4.tcp_fin_timeout = 30 （修改系統默认的TIMEOUT时间）</div></pre></td></tr></table></figure>
+<p>执行/sbin/sysctl -p让参数生效. 等待一段时间查看网络情况，发现time_wait状态变少，查看cpu占用情况，也恢复正常。<br>猜测linux每次找到一个随机端口，还是需要遍历一遍bound ports的吧，这必然需要一些CPU时间，会导致cpu负载变高。</p>
+<h1 id="详解tcp"><a href="#详解tcp" class="headerlink" title="详解tcp"></a>详解tcp</h1><p>tcp属于osi七层模型中的第四层传输层， ip属于第三层网络层，arp属于第二层数据链路层。第二层上的数据叫做frame，第三层叫做package，第四层叫做segment。 </p>
+<h1 id="tcp-三次握手-四次握手"><a href="#tcp-三次握手-四次握手" class="headerlink" title="tcp  三次握手, 四次握手"></a>tcp  三次握手, 四次握手</h1><p><img src="http://yangege.b0.upaiyun.com/product/d7812d64205.jpg" alt="TCP头格式"></p>
+<p>需要注意的几点</p>
+<ul>
+<li>sequence number 报文的序号，解决乱序的问题</li>
+<li>acknowledgement Number 解决可靠传输的问题，不丢包</li>
+<li>sliding window 解决用于流量控制的</li>
+<li>tcp flag 操作tcp的状态机，如ACK，PUSH，SYN，FIN, RESET</li>
+</ul>
+<p><img src="http://yangege.b0.upaiyun.com/product/2e51096e3886b.png" alt="状态机变化"></p>
+<ul>
+<li><p>三次握手连接：</p>
+<p>  客户端 CLOSED -&gt; SYN_SEND -&gt; ESTABLISHED </p>
+<p>  服务端 CLOSED -&gt; SYN_RECEIVED -&gt; ESTABLISHED</p>
+</li>
+<li><p>四次握手断开： </p>
+<p>  客户端 ESTABLISHED -&gt; FIN_CLOSED1 -&gt; FINCLOSED2 -&gt; TIME_WAIT -&gt; CLOSED </p>
+<p>  服务端 ESTABLISHED -&gt; SYN_RECEIVED -&gt; CLOSE_WAIT -&gt; ACK_WAIT -&gt; CLOSED</p>
+</li>
+</ul>
+<h1 id="为什么会有连接需要三次握手和断开需要四次握手？"><a href="#为什么会有连接需要三次握手和断开需要四次握手？" class="headerlink" title="为什么会有连接需要三次握手和断开需要四次握手？"></a>为什么会有连接需要三次握手和断开需要四次握手？</h1><ul>
+<li><p>三次握手：双方同步sequence number的初始值，所以叫做syn （synchronize sequence number）， 以保证数据的传输顺序的一致。</p>
+</li>
+<li><p>四次握手：可以看做两次断开过程。 </p>
+</li>
+</ul>
+<p>需要主要的几个点:</p>
+<ol>
+<li><p>客户端发出SYN后挂掉。试想一下，如果server端接到了clien发的SYN后回了SYN-ACK后client掉线了，server端没有收到client回来的ACK，那么，这个连接处于一个中间状态，即没成功，也没失败。于是，server端如果在一定时间内没有收到的TCP会重发SYN-ACK。在Linux下，默认重试次数为5次，重试的间隔时间从1s开始每次都翻售，5次的重试时间间隔为1s, 2s, 4s, 8s, 16s，总共31s，第5次发出后还要等32s都知道第5次也超时了，所以，总共需要 1s + 2s + 4s+ 8s+ 16s + 32s = 2^6 -1 = 63s，TCP才会把断开这个连接。</p>
+</li>
+<li><p>syn flood 攻击<br>恶意攻击者可以发出SYN后马上挂掉，会导致大量的端口资源，会导致syn连接队列耗尽。linux提供了一个tcp_syncookies参数应对，当syn队列满了之后，linux会根据源，目标端口构，时间戳打造出一个特别的Sequence Number发回去（又叫cookie），如果是攻击者则不会有响应，如果是正常连接，则会把这个 SYN Cookie发回来，然后服务端可以通过cookie建连接（即使你不在SYN队列中）,对于正常的请求，你应该调整三个TCP参数可供你选择，第一个是：tcp_synack_retries 可以用他来减少重试次数；第二个是：tcp_max_syn_backlog，可以增大SYN连接数；第三个是：tcp_abort_on_overflow 处理不过来干脆就直接拒绝连接了。</p>
+</li>
+<li><p>time_wait<br>我们注意到，在TCP的状态图中，从TIME_WAIT状态到CLOSED状态，有一个超时设置，这个超时设置是 2*MSL（RFC793定义了MSL为2分钟，Linux设置成了30s）为什么要这有TIME_WAIT？为什么不直接给转成CLOSED状态呢？主要有两个原因：1）TIME_WAIT确保有足够的时间让对端收到了ACK，如果被动关闭的那方没有收到Ack，就会触发被动端重发Fin，一来一去正好2个MSL，2）有足够的时间让这个连接不会跟后面的连接混在一起（你要知道，有些自做主张的路由器会缓存IP数据包，如果连接被重用了，那么这些延迟收到的包就有可能会跟新连接混在一起）。</p>
+</li>
+</ol>
+<ol>
+<li>time_wait 数量太多<br>可以配置两个参数tcp_tw_reuse、tcp_tw_recycle这两个参数默认值都是被关闭的，后者recyle比前者resue更为激进，resue要温柔一些。另外，如果使用tcp_tw_reuse，必需设置tcp_timestamps=1，否则无效.<ul>
+<li>关于tcp_tw_reuse。官方文档上说tcp_tw_reuse 加上tcp_timestamps（又叫PAWS, for Protection Against Wrapped Sequence Numbers）可以保证协议的角度上的安全，但是你需要tcp_timestamps在两边都被打开（你可以读一下tcp_twsk_unique的源码 ）。我个人估计还是有一些场景会有问题。</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li><p>关于tcp_tw_recycle。如果是tcp_tw_recycle被打开了话，会假设对端开启了tcp_timestamps，然后会去比较时间戳，如果时间戳变大了，就可以重用。但是，如果对端是一个NAT网络的话（如：一个公司只用一个IP出公网）或是对端的IP被另一台重用了，这个事就复杂了。建链接的SYN可能就被直接丢掉了（你可能会看到connection time out的错误）（如果你想观摩一下Linux的内核代码，请参看源码 tcp_timewait_state_process）。</p>
+</li>
+<li><p>关于tcp_max_tw_buckets。这个是控制并发的TIME_WAIT的数量，默认值是180000，如果超限，那么，系统会把多的给destory掉，然后在日志里打一个警告（如：time wait bucket table overflow），官网文档说这个参数是用来对抗DDoS攻击的。也说的默认值180000并不小。这个还是需要根据实际情况考虑。</p>
+</li>
+</ul>
+<h1 id="TCP重传机制"><a href="#TCP重传机制" class="headerlink" title="TCP重传机制"></a>TCP重传机制</h1><p>TCP要保证所有的数据包都可以到达，所以，必需要有重传机制。</p>
+<p>注意，接收端给发送端的Ack确认只会确认最后一个连续的包，比如，发送端发了1,2,3,4,5一共五份数据，接收端收到了1，2于是回ack 3，然后收到了4（注意此时3没收到），此时的TCP会怎么办？我们要知道，因为正如前面所说的，SeqNum和Ack是以字节数为单位，所以ack的时候，不能跳着确认，只能确认最大的连续收到的包，不然，发送端就以为之前的都收到了。</p>
+<h2 id="超时重传机制"><a href="#超时重传机制" class="headerlink" title="超时重传机制"></a>超时重传机制</h2><p>一种是不回ack，死等3，当发送方发现收不到3的ack超时后，会重传3。一旦接收方收到3后，会ack 回 4——意味着3和4都收到了。</p>
+<p>但是，这种方式会有比较严重的问题，那就是因为要死等3，所以会导致4和5即便已经收到了，而发送方也完全不知道发生了什么事，因为没有收到Ack，所以，发送方可能会悲观地认为也丢了，所以有可能也会导致4和5的重传。</p>
+<p>对此有两种选择：</p>
+<ul>
+<li>一种是仅重传timeout的包。也就是第3份数据。</li>
+<li>另一种是重传timeout后所有的数据，也就是第3，4，5这三份数据。<br>这两种方式有好也有不好。第一种会节省带宽，但是慢，第二种会快一点，但是会浪费带宽，也可能会有无用功。但总体来说都不好。因为都在等timeout，timeout可能会很长（在下篇会说TCP是怎么动态地计算出timeout的）</li>
+</ul>
+<h2 id="快速重传机制"><a href="#快速重传机制" class="headerlink" title="快速重传机制"></a>快速重传机制</h2><p>于是，TCP引入了一种叫Fast Retransmit 的算法，不以时间驱动，而以数据驱动重传。也就是说，如果，包没有连续到达，就ack最后那个可能被丢了的包，如果发送方连续收到3次相同的ack，就重传。Fast Retransmit的好处是不用等timeout了再重传。</p>
+<p>比如：如果发送方发出了1，2，3，4，5份数据，第一份先到送了，于是就ack回2，结果2因为某些原因没收到，3到达了，于是还是ack回2，后面的4和5都到了，但是还是ack回2，因为2还是没有收到，于是发送端收到了三个ack=2的确认，知道了2还没有到，于是就马上重转2。然后，接收端收到了2，此时因为3，4，5都收到了，于是ack回6。示意图如下：</p>
+<p>Fast Retransmit只解决了一个问题，就是timeout的问题，它依然面临一个艰难的选择，就是，是重传之前的一个还是重传所有的问题。对于上面的示例来说，是重传#2呢还是重传#2，#3，#4，#5呢？因为发送端并不清楚这连续的3个ack(2)是谁传回来的？也许发送端发了20份数据，是#6，#10，#20传来的呢。这样，发送端很有可能要重传从2到20的这堆数据（这就是某些TCP的实际的实现）。可见，这是一把双刃剑。</p>
+<p><a href="http://coolshell.cn/articles/11564.html" target="_blank" rel="external">参考</a></p>
+
+            <blockquote>
+                <p>
+                本文地址：
+                <a href="http://boolbit.info/2016/12/05/服务器cpu负载过高与tcp/" target="_blank" rel="external">http://boolbit.info/2016/12/05/服务器cpu负载过高与tcp/</a>
+                </p>
+                <footer><cite><a href="http://boolbit.info">@boolBit's blog</a></cite></footer>
+            </blockquote>
+            </div>
+            
+<nav class="post-nav">
+  
+
+  
+    <div class="waves-block waves-effect next fr">
+      <a href="/2016/09/06/hexo与github集成搭建blog/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">hexo与github集成搭建blog</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+            
+            
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="服务器cpu负载过高与tcp" data-title="服务器cpu占用过高问题" data-url="http://boolbit.info/2016/12/05/服务器cpu负载过高与tcp/index.html"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"boolbit"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+
+        </div>
+    </div>
+</article>
+    </div>
+  </main>
+<div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+<script>
+var BLOG_SHARE = {
+    title: "服务器cpu占用过高问题",
+    pic: "/img/logo.jpg",
+    summary: document.getElementsByName('summary')[0].content,
+    url: "http://boolbit.info/2016/12/05/服务器cpu负载过高与tcp/index.html"
+};
+</script>
+<div class="global-share" id="global-share">
+    <div class="tit">分享到：</div>
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" href="javascript:;" data-title="微博" data-service="tsina">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns" href="javascript:;" data-title="微信" data-service="weixin">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" href="javascript:;" data-title=" QQ" data-service="cqq">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" href="javascript:;" data-title=" Facebook" data-service="fb">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" href="javascript:;" data-title=" Twitter" data-service="twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="douban share-sns" href="javascript:;" data-title="豆瓣" data-service="douban">
+          豆
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+<script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+
+<script src="/js/main.js"></script>
+
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<script type="text/template" id="search-tpl">
+<li class="item">
+    <a href="/{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</script>
+
+<script src="/js/search.js"></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>
