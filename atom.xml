@@ -53,7 +53,7 @@
     <link href="http://boolbit.info/2016/12/05/%E6%9C%8D%E5%8A%A1%E5%99%A8cpu%E8%B4%9F%E8%BD%BD%E8%BF%87%E9%AB%98%E4%B8%8Etcp/"/>
     <id>http://boolbit.info/2016/12/05/服务器cpu负载过高与tcp/</id>
     <published>2016-12-05T07:35:50.000Z</published>
-    <updated>2016-12-06T08:18:33.727Z</updated>
+    <updated>2016-12-12T03:02:50.009Z</updated>
     
     <content type="html"><![CDATA[<h1 id="排查java程序"><a href="#排查java程序" class="headerlink" title="排查java程序"></a>排查java程序</h1><p>之前公司网页项目有两台服务器，出现过cpu负载过高的情况，阿里云频繁报警。一开始以为是程序代码问题，通过top命令观察，java进程的负载比较平均都是比较低的，拿了一个进程按以下步骤查看：</p>
 <ol>
@@ -123,6 +123,9 @@
 <p>比如：如果发送方发出了1，2，3，4，5份数据，第一份先到送了，于是就ack回2，结果2因为某些原因没收到，3到达了，于是还是ack回2，后面的4和5都到了，但是还是ack回2，因为2还是没有收到，于是发送端收到了三个ack=2的确认，知道了2还没有到，于是就马上重转2。然后，接收端收到了2，此时因为3，4，5都收到了，于是ack回6。示意图如下：</p>
 <p>Fast Retransmit只解决了一个问题，就是timeout的问题，它依然面临一个艰难的选择，就是，是重传之前的一个还是重传所有的问题。对于上面的示例来说，是重传#2呢还是重传#2，#3，#4，#5呢？因为发送端并不清楚这连续的3个ack(2)是谁传回来的？也许发送端发了20份数据，是#6，#10，#20传来的呢。这样，发送端很有可能要重传从2到20的这堆数据（这就是某些TCP的实际的实现）。可见，这是一把双刃剑。</p>
 <p><a href="http://coolshell.cn/articles/11564.html" target="_blank" rel="external">参考</a></p>
+<p>返回的这个结构里再加一个tname<br>用户点了导航条的时候, 本地可以记一条记录，<br>点击结构：<br>{<br>    target: tname (str)<br>    action: 2（str）<br>    time: 记录时间 （str）<br>    gpm：str （来源信息导航条暂时没有啊吧）<br>}</p>
+<p>到了一定记录数或者时间可以发送过来</p>
+<p>/data/track 这个接口 params中是 trackList：[点击结构]</p>
 ]]></content>
     
     <summary type="html">
