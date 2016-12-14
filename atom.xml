@@ -64,7 +64,13 @@
 <h1 id="修改系统的-etc-sysctl-conf配置来减少TIME-WAIT的tcp连接："><a href="#修改系统的-etc-sysctl-conf配置来减少TIME-WAIT的tcp连接：" class="headerlink" title="修改系统的/etc/sysctl.conf配置来减少TIME_WAIT的tcp连接："></a>修改系统的/etc/sysctl.conf配置来减少TIME_WAIT的tcp连接：</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">vi /etc/sysctl.conf</div><div class="line"></div><div class="line">net.ipv4.tcp_syncookies = 1  （表示开启SYN Cookies。当出现SYN等待队列溢出时，启用cookies来处理，可防范少量SYN攻击，默认为0，表示关闭）</div><div class="line">net.ipv4.tcp_tw_reuse = 1  （表示开启重用。允许将TIME-WAIT sockets重新用于新的TCP连接，默认为0，表示关闭）</div><div class="line">net.ipv4.tcp_tw_recycle = 1   （表示开启TCP连接中TIME-WAIT sockets的快速回收，默认为0，表示关闭。）</div><div class="line">net.ipv4.tcp_fin_timeout = 30 （修改系統默认的TIMEOUT时间）</div></pre></td></tr></table></figure>
 <p>执行/sbin/sysctl -p让参数生效. 等待一段时间查看网络情况，发现time_wait状态变少，查看cpu占用情况，也恢复正常。<br>猜测linux每次找到一个随机端口，还是需要遍历一遍bound ports的吧，这必然需要一些CPU时间，会导致cpu负载变高。</p>
 <h1 id="详解tcp"><a href="#详解tcp" class="headerlink" title="详解tcp"></a>详解tcp</h1><p>tcp属于osi七层模型中的第四层传输层， ip属于第三层网络层，arp属于第二层数据链路层。第二层上的数据叫做frame，第三层叫做package，第四层叫做segment。 </p>
-<h1 id="tcp-三次握手-四次握手"><a href="#tcp-三次握手-四次握手" class="headerlink" title="tcp  三次握手, 四次握手"></a>tcp  三次握手, 四次握手</h1><p><img src="http://yangege.b0.upaiyun.com/product/d7812d64205.jpg" alt="TCP头格式"></p>
+<h1 id="tcp-三次握手-四次握手"><a href="#tcp-三次握手-四次握手" class="headerlink" title="tcp  三次握手, 四次握手"></a>tcp  三次握手, 四次握手</h1><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://yangege.b0.upaiyun.com/product/d7812d64205.jpg" alt="TCP头格式" title="">
+                </div>
+                <div class="image-caption">TCP头格式</div>
+            </figure>
 <p>需要注意的几点</p>
 <ul>
 <li>sequence number 报文的序号，解决乱序的问题</li>
@@ -72,7 +78,13 @@
 <li>sliding window 解决用于流量控制的</li>
 <li>tcp flag 操作tcp的状态机，如ACK，PUSH，SYN，FIN, RESET</li>
 </ul>
-<p><img src="http://yangege.b0.upaiyun.com/product/2e51096e3886b.png" alt="状态机变化"></p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://yangege.b0.upaiyun.com/product/2e51096e3886b.png" alt="状态机变化" title="">
+                </div>
+                <div class="image-caption">状态机变化</div>
+            </figure>
 <ul>
 <li><p>三次握手连接：</p>
 <p>  客户端 CLOSED -&gt; SYN_SEND -&gt; ESTABLISHED </p>
