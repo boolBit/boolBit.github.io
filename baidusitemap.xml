@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+
+    
+    
+  <url>
+    <loc>http://boolbit.info/2017/03/24/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/</loc>
+    <lastmod>2017-03-24T07:28:21.094Z</lastmod>
+    <data>
+        <display>
+        <title>分布式事务</title>
+        <pubTime>2017-03-24T07:17:06.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>分布式</tag>
+         
+        <tag>dubbo</tag>
+         
+        <tag>微服务</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://boolbit.info/2017/02/03/jmeter-jprofiler%E6%80%A7%E8%83%BD%E5%8E%8B%E6%B5%8B/</loc>
+    <lastmod>2017-02-03T10:20:25.576Z</lastmod>
+    <data>
+        <display>
+        <title>jmeter+jprofiler性能压测</title>
+        <pubTime>2017-02-03T09:25:12.000Z</pubTime>
+        
+        <tag>性能压测</tag>
+         
+        <tag>jmeter</tag>
+         
+        <tag>jprofiler</tag>
+         
+         
+           
+             
+              <breadCrumb title="教程" url="http://boolbit.info/categories/%E6%95%99%E7%A8%8B/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://boolbit.info/2016/12/05/%E6%9C%8D%E5%8A%A1%E5%99%A8cpu%E8%B4%9F%E8%BD%BD%E8%BF%87%E9%AB%98%E4%B8%8Etcp/</loc>
+    <lastmod>2016-12-12T03:02:50.009Z</lastmod>
+    <data>
+        <display>
+        <title>服务器cpu占用过高问题</title>
+        <pubTime>2016-12-05T07:35:50.000Z</pubTime>
+        
+        <tag>tcp</tag>
+         
+        <tag>cpu</tag>
+         
+         
+           
+             
+              <breadCrumb title="总结" url="http://boolbit.info/categories/%E6%80%BB%E7%BB%93/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://boolbit.info/2016/12/06/twitter%E5%88%86%E5%B8%83%E5%BC%8Fid%E7%94%9F%E6%88%90%E5%99%A8/</loc>
+    <lastmod>2016-12-06T08:18:20.695Z</lastmod>
+    <data>
+        <display>
+        <title>twitter分布式id生成器</title>
+        <pubTime>2016-12-06T08:13:50.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>distribute</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+    
+  <url>
+    <loc>http://boolbit.info/2016/09/06/hexo%E4%B8%8Egithub%E9%9B%86%E6%88%90%E6%90%AD%E5%BB%BAblog/</loc>
+    <lastmod>2016-09-06T01:23:17.636Z</lastmod>
+    <data>
+        <display>
+        <title>hexo与github集成搭建blog</title>
+        <pubTime>2016-09-06T01:23:17.636Z</pubTime>
+        
+        <tag>hexo</tag>
+         
+        <tag>git</tag>
+         
+        <tag>blog</tag>
+         
+         
+           
+             
+              <breadCrumb title="教程" url="http://boolbit.info/categories/%E6%95%99%E7%A8%8B/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+</urlset>
