@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://boolbit.info/"/>
-  <updated>2017-02-03T10:20:25.576Z</updated>
+  <updated>2017-03-24T07:28:21.094Z</updated>
   <id>http://boolbit.info/</id>
   
   <author>
@@ -14,6 +14,104 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>分布式事务</title>
+    <link href="http://boolbit.info/2017/03/24/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/"/>
+    <id>http://boolbit.info/2017/03/24/分布式事务/</id>
+    <published>2017-03-24T07:17:06.000Z</published>
+    <updated>2017-03-24T07:28:21.094Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="什么是分布式事务"><a href="#什么是分布式事务" class="headerlink" title="什么是分布式事务"></a>什么是分布式事务</h1><p>由多个本地事务组成一个分布式事务，有发起者和参与者，需要和单机事务表现的行为一样。</p>
+<h2 id="CAP-理论"><a href="#CAP-理论" class="headerlink" title="CAP 理论"></a>CAP 理论</h2><ul>
+<li>C  （Consistency） 一致性</li>
+<li>A （AVALIABLE） 好的响应性能</li>
+<li>P （Partition tolerance） 可靠性, 分区容忍性， 允许服务器宕机</li>
+</ul>
+<h2 id="BASE"><a href="#BASE" class="headerlink" title="BASE"></a>BASE</h2><p>BASE模型反ACID模型，完全不同ACID模型，牺牲高一致性，获得可用性或可靠性：</p>
+<ul>
+<li>Basically Available基本可用。支持分区失败(e.g. sharding碎片划分数据库)</li>
+<li>Soft state软状态 状态可以有一段时间不同步，异步。</li>
+<li>Eventually consistent最终一致，最终数据是一致的就可以了，而不是时时高一致。</li>
+</ul>
+<h2 id="单机事务"><a href="#单机事务" class="headerlink" title="单机事务"></a>单机事务</h2><ul>
+<li>a（atomic） 原子性： 事务中的多个操作要么全部执行，要么全部不执行。</li>
+<li>c （consistent）一致性： 事务执行前后，不管成功与否。整个数据库的完整性，一致性不受破坏。</li>
+<li>i  （isolation）隔离性： 多个事务间的操作互不影响。</li>
+<li>d （duration）持久性： 事务一但confirm， 变更会保留到磁盘上。 </li>
+</ul>
+<h2 id="数据库隔离级别："><a href="#数据库隔离级别：" class="headerlink" title="数据库隔离级别："></a>数据库隔离级别：</h2><ul>
+<li>读未提交<br>可能会出现脏读，不可重复读，幻读</li>
+<li>读提交<br>可能会出现不可重复读幻读 。  读的记录，可能会被修改，第二次读不准。</li>
+<li>可重复读<br>可能会出现幻读。 可能会读到新插入的记录</li>
+<li>串行</li>
+</ul>
+<p>脏读： 读到其它事务未提交的数据<br>不可重复读： 事务中看见的数据， 可能被另一个事务修改，导致第二次看，与第一次看到的不同。<br>幻读： 事务中会读到其它事务新增的数据。</p>
+<h2 id="分布式事务类型"><a href="#分布式事务类型" class="headerlink" title="分布式事务类型"></a>分布式事务类型</h2><ul>
+<li><h4 id="XA-两阶段"><a href="#XA-两阶段" class="headerlink" title="XA 两阶段"></a><strong>XA 两阶段</strong></h4><blockquote>
+<p>由事务管理器，资源管理器组成。事务管理器作为协调器，调度本地资源的提交与回滚。分为<br>准备阶段，执行阶段。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://static.codeceo.com/images/2016/07/distri-trans-03.png?_=5639528" alt="image" title="">
+                </div>
+                <div class="image-caption">image</div>
+            </figure>
+</blockquote>
+</li>
+</ul>
+<p>缺点：<br>性能不理想， mysql， nosql 等不支持。</p>
+<ul>
+<li><h4 id="消息事务-最终一致性"><a href="#消息事务-最终一致性" class="headerlink" title="消息事务 + 最终一致性"></a><strong>消息事务 + 最终一致性</strong></h4><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://static.codeceo.com/images/2016/07/distri-trans-06.png?_=5639528" alt="image" title="">
+                </div>
+                <div class="image-caption">image</div>
+            </figure></li>
+</ul>
+<ol>
+<li>A系统向消息中间件发送一条预备消息</li>
+<li>消息中间件保存预备消息并返回成功</li>
+<li>A执行本地事务</li>
+<li>A发送提交消息给消息中间件</li>
+</ol>
+<p>通过以上4步完成了一个消息事务。对于以上的4个步骤，每个步骤都可能产生错误，下面一一分析：</p>
+<ul>
+<li>步骤一出错，则整个事务失败，不会执行A的本地操作</li>
+<li>步骤二出错，则整个事务失败，不会执行A的本地操作</li>
+<li>步骤三出错，这时候需要回滚预备消息，怎么回滚？答案是A系统实现一个消息中间件的回调接口，消息中间件会去不断执行回调接口，检查A事务执行是否执行成功，如果失败则回滚预备消息</li>
+<li>步骤四出错，这时候A的本地事务是成功的，那么消息中间件要回滚A吗？答案是不需要，其实通过回调接口，消息中间件能够检查到A执行成功了，这时候其实不需要A发提交消息了，消息中间件可以自己对消息进行提交，从而完成整个消息事务<br>将分布式事务 拆分为（消息事务+ 本地事务a），和本地事务b。本地事务b由消息驱动。</li>
+</ul>
+<p>虽然上面的方案能够完成A和B的操作，但是A和B并不是严格一致的，而是最终一致的，我们在这里牺牲了一致性，换来了性能的大幅度提升。当然，这种玩法也是有风险的，如果B一直执行不成功，那么一致性会被破坏，具体要不要玩，还是得看业务能够承担多少风险。</p>
+<ul>
+<li><h4 id="TCC"><a href="#TCC" class="headerlink" title="TCC"></a><strong>TCC</strong></h4>所谓的TCC编程模式，也是两阶段提交的一个变种。TCC提供了一个编程框架，将整个业务逻辑分为三块：Try、Confirm和Cancel三个操作。以在线下单为例，Try阶段会去扣库存，Confirm阶段则是去更新订单状态，如果更新订单失败，则进入Cancel阶段，会去恢复库存。总之，TCC就是通过代码人为实现了两阶段提交，不同的业务场景所写的代码都不一样，复杂度也不一样，因此，这种模式并不能很好地被复用。</li>
+</ul>
+<ol>
+<li><a href="http://www.cnblogs.com/leetieniu2014/p/5639528.html" target="_blank" rel="external">参考1</a></li>
+<li><a href="http://www.codeceo.com/article/spring-transactions.html" target="_blank" rel="external">参考2</a></li>
+<li><a href="http://www.jianshu.com/p/453c6e7ff81c" target="_blank" rel="external">参考3</a></li>
+<li><a href="http://mp.weixin.qq.com/s?__biz=MzAwMDU1MTE1OQ==&amp;mid=2653546976&amp;idx=1&amp;sn=c3fb2338389a41e7ab998c0c21bd3e5d&amp;scene=23&amp;srcid=0519zxqHTjZMz7hQ6ZP60fmZ#rd" target="_blank" rel="external">参考4</a></li>
+</ol>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;什么是分布式事务&quot;&gt;&lt;a href=&quot;#什么是分布式事务&quot; class=&quot;headerlink&quot; title=&quot;什么是分布式事务&quot;&gt;&lt;/a&gt;什么是分布式事务&lt;/h1&gt;&lt;p&gt;由多个本地事务组成一个分布式事务，有发起者和参与者，需要和单机事务表现的行为一样。&lt;/p&gt;
+
+    
+    </summary>
+    
+    
+      <category term="java" scheme="http://boolbit.info/tags/java/"/>
+    
+      <category term="分布式" scheme="http://boolbit.info/tags/%E5%88%86%E5%B8%83%E5%BC%8F/"/>
+    
+      <category term="dubbo" scheme="http://boolbit.info/tags/dubbo/"/>
+    
+      <category term="微服务" scheme="http://boolbit.info/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"/>
+    
+  </entry>
   
   <entry>
     <title>jmeter+jprofiler性能压测</title>

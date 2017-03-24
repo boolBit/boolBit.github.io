@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>分布式事务 | boolBit&#39;s blog | 积少成多</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="java,分布式,dubbo,微服务">
+    <meta name="description" content="什么是分布式事务由多个本地事务组成一个分布式事务，有发起者和参与者，需要和单机事务表现的行为一样。
+CAP 理论
+C  （Consistency） 一致性
+A （AVALIABLE） 好的响应性能
+P （Partition tolerance） 可靠性, 分区容忍性， 允许服务器宕机
+
+BASEBASE模型反ACID模型，完全不同ACID模型，牺牲高一致性，获得可用性或可靠性：
+
+Basicall">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式事务">
+<meta property="og:url" content="http://boolbit.info/2017/03/24/分布式事务/index.html">
+<meta property="og:site_name" content="boolBit's blog">
+<meta property="og:description" content="什么是分布式事务由多个本地事务组成一个分布式事务，有发起者和参与者，需要和单机事务表现的行为一样。
+CAP 理论
+C  （Consistency） 一致性
+A （AVALIABLE） 好的响应性能
+P （Partition tolerance） 可靠性, 分区容忍性， 允许服务器宕机
+
+BASEBASE模型反ACID模型，完全不同ACID模型，牺牲高一致性，获得可用性或可靠性：
+
+Basicall">
+<meta property="og:image" content="http://static.codeceo.com/images/2016/07/distri-trans-03.png?_=5639528">
+<meta property="og:image" content="http://static.codeceo.com/images/2016/07/distri-trans-06.png?_=5639528">
+<meta property="og:updated_time" content="2017-03-24T07:28:21.094Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分布式事务">
+<meta name="twitter:description" content="什么是分布式事务由多个本地事务组成一个分布式事务，有发起者和参与者，需要和单机事务表现的行为一样。
+CAP 理论
+C  （Consistency） 一致性
+A （AVALIABLE） 好的响应性能
+P （Partition tolerance） 可靠性, 分区容忍性， 允许服务器宕机
+
+BASEBASE模型反ACID模型，完全不同ACID模型，牺牲高一致性，获得可用性或可靠性：
+
+Basicall">
+<meta name="twitter:image" content="http://static.codeceo.com/images/2016/07/distri-trans-03.png?_=5639528">
+    
+        <link rel="alternative" href="/atom.xml" title="boolBit&#39;s blog" type="application/atom+xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.4.2">
+    <script>window.lazyScripts=[]</script>
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">boolBit</h5>
+          <a href="mailto:582076225@qq.com" title="582076225@qq.com" class="mail">582076225@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">分布式事务</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">分布式事务</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2017-03-24T07:17:06.000Z" itemprop="datePublished" class="page-time">
+  2017-03-24
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#什么是分布式事务"><span class="post-toc-number">1.</span> <span class="post-toc-text">什么是分布式事务</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#CAP-理论"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">CAP 理论</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#BASE"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">BASE</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#单机事务"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">单机事务</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#数据库隔离级别："><span class="post-toc-number">1.4.</span> <span class="post-toc-text">数据库隔离级别：</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#分布式事务类型"><span class="post-toc-number">1.5.</span> <span class="post-toc-text">分布式事务类型</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#XA-两阶段"><span class="post-toc-number">1.5.0.1.</span> <span class="post-toc-text">XA 两阶段</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#消息事务-最终一致性"><span class="post-toc-number">1.5.0.2.</span> <span class="post-toc-text">消息事务 + 最终一致性</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#TCC"><span class="post-toc-number">1.5.0.3.</span> <span class="post-toc-text">TCC</span></a></li></ol></li></ol></li></ol></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-分布式事务"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">分布式事务</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2017-3-24 15:17" datetime="2017-03-24T07:17:06.000Z"  itemprop="datePublished">2017-03-24</time>
+
+            
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h1 id="什么是分布式事务"><a href="#什么是分布式事务" class="headerlink" title="什么是分布式事务"></a>什么是分布式事务</h1><p>由多个本地事务组成一个分布式事务，有发起者和参与者，需要和单机事务表现的行为一样。</p>
+<h2 id="CAP-理论"><a href="#CAP-理论" class="headerlink" title="CAP 理论"></a>CAP 理论</h2><ul>
+<li>C  （Consistency） 一致性</li>
+<li>A （AVALIABLE） 好的响应性能</li>
+<li>P （Partition tolerance） 可靠性, 分区容忍性， 允许服务器宕机</li>
+</ul>
+<h2 id="BASE"><a href="#BASE" class="headerlink" title="BASE"></a>BASE</h2><p>BASE模型反ACID模型，完全不同ACID模型，牺牲高一致性，获得可用性或可靠性：</p>
+<ul>
+<li>Basically Available基本可用。支持分区失败(e.g. sharding碎片划分数据库)</li>
+<li>Soft state软状态 状态可以有一段时间不同步，异步。</li>
+<li>Eventually consistent最终一致，最终数据是一致的就可以了，而不是时时高一致。</li>
+</ul>
+<h2 id="单机事务"><a href="#单机事务" class="headerlink" title="单机事务"></a>单机事务</h2><ul>
+<li>a（atomic） 原子性： 事务中的多个操作要么全部执行，要么全部不执行。</li>
+<li>c （consistent）一致性： 事务执行前后，不管成功与否。整个数据库的完整性，一致性不受破坏。</li>
+<li>i  （isolation）隔离性： 多个事务间的操作互不影响。</li>
+<li>d （duration）持久性： 事务一但confirm， 变更会保留到磁盘上。 </li>
+</ul>
+<h2 id="数据库隔离级别："><a href="#数据库隔离级别：" class="headerlink" title="数据库隔离级别："></a>数据库隔离级别：</h2><ul>
+<li>读未提交<br>可能会出现脏读，不可重复读，幻读</li>
+<li>读提交<br>可能会出现不可重复读幻读 。  读的记录，可能会被修改，第二次读不准。</li>
+<li>可重复读<br>可能会出现幻读。 可能会读到新插入的记录</li>
+<li>串行</li>
+</ul>
+<p>脏读： 读到其它事务未提交的数据<br>不可重复读： 事务中看见的数据， 可能被另一个事务修改，导致第二次看，与第一次看到的不同。<br>幻读： 事务中会读到其它事务新增的数据。</p>
+<h2 id="分布式事务类型"><a href="#分布式事务类型" class="headerlink" title="分布式事务类型"></a>分布式事务类型</h2><ul>
+<li><h4 id="XA-两阶段"><a href="#XA-两阶段" class="headerlink" title="XA 两阶段"></a><strong>XA 两阶段</strong></h4><blockquote>
+<p>由事务管理器，资源管理器组成。事务管理器作为协调器，调度本地资源的提交与回滚。分为<br>准备阶段，执行阶段。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://static.codeceo.com/images/2016/07/distri-trans-03.png?_=5639528" alt="image" title="">
+                </div>
+                <div class="image-caption">image</div>
+            </figure>
+</blockquote>
+</li>
+</ul>
+<p>缺点：<br>性能不理想， mysql， nosql 等不支持。</p>
+<ul>
+<li><h4 id="消息事务-最终一致性"><a href="#消息事务-最终一致性" class="headerlink" title="消息事务 + 最终一致性"></a><strong>消息事务 + 最终一致性</strong></h4><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://static.codeceo.com/images/2016/07/distri-trans-06.png?_=5639528" alt="image" title="">
+                </div>
+                <div class="image-caption">image</div>
+            </figure></li>
+</ul>
+<ol>
+<li>A系统向消息中间件发送一条预备消息</li>
+<li>消息中间件保存预备消息并返回成功</li>
+<li>A执行本地事务</li>
+<li>A发送提交消息给消息中间件</li>
+</ol>
+<p>通过以上4步完成了一个消息事务。对于以上的4个步骤，每个步骤都可能产生错误，下面一一分析：</p>
+<ul>
+<li>步骤一出错，则整个事务失败，不会执行A的本地操作</li>
+<li>步骤二出错，则整个事务失败，不会执行A的本地操作</li>
+<li>步骤三出错，这时候需要回滚预备消息，怎么回滚？答案是A系统实现一个消息中间件的回调接口，消息中间件会去不断执行回调接口，检查A事务执行是否执行成功，如果失败则回滚预备消息</li>
+<li>步骤四出错，这时候A的本地事务是成功的，那么消息中间件要回滚A吗？答案是不需要，其实通过回调接口，消息中间件能够检查到A执行成功了，这时候其实不需要A发提交消息了，消息中间件可以自己对消息进行提交，从而完成整个消息事务<br>将分布式事务 拆分为（消息事务+ 本地事务a），和本地事务b。本地事务b由消息驱动。</li>
+</ul>
+<p>虽然上面的方案能够完成A和B的操作，但是A和B并不是严格一致的，而是最终一致的，我们在这里牺牲了一致性，换来了性能的大幅度提升。当然，这种玩法也是有风险的，如果B一直执行不成功，那么一致性会被破坏，具体要不要玩，还是得看业务能够承担多少风险。</p>
+<ul>
+<li><h4 id="TCC"><a href="#TCC" class="headerlink" title="TCC"></a><strong>TCC</strong></h4>所谓的TCC编程模式，也是两阶段提交的一个变种。TCC提供了一个编程框架，将整个业务逻辑分为三块：Try、Confirm和Cancel三个操作。以在线下单为例，Try阶段会去扣库存，Confirm阶段则是去更新订单状态，如果更新订单失败，则进入Cancel阶段，会去恢复库存。总之，TCC就是通过代码人为实现了两阶段提交，不同的业务场景所写的代码都不一样，复杂度也不一样，因此，这种模式并不能很好地被复用。</li>
+</ul>
+<ol>
+<li><a href="http://www.cnblogs.com/leetieniu2014/p/5639528.html" target="_blank" rel="external">参考1</a></li>
+<li><a href="http://www.codeceo.com/article/spring-transactions.html" target="_blank" rel="external">参考2</a></li>
+<li><a href="http://www.jianshu.com/p/453c6e7ff81c" target="_blank" rel="external">参考3</a></li>
+<li><a href="http://mp.weixin.qq.com/s?__biz=MzAwMDU1MTE1OQ==&amp;mid=2653546976&amp;idx=1&amp;sn=c3fb2338389a41e7ab998c0c21bd3e5d&amp;scene=23&amp;srcid=0519zxqHTjZMz7hQ6ZP60fmZ#rd" target="_blank" rel="external">参考4</a></li>
+</ol>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2017-03-24T07:28:21.094Z" title="2017-3-24 15:28" itemprop="dateUpdated">2017年3月24日 15:28</time>
+</span><br>
+
+
+        
+    </div>
+    <footer>
+        <a href="http://boolbit.info">
+            <img src="/img/avatar.jpg" alt="boolBit">
+            boolBit
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dubbo/">dubbo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/微服务/">微服务</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://boolbit.info/2017/03/24/分布式事务/&title=《分布式事务》 — boolBit's blog&pic=http://boolbit.info/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://boolbit.info/2017/03/24/分布式事务/&title=《分布式事务》 — boolBit's blog&source=积少成多" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://boolbit.info/2017/03/24/分布式事务/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《分布式事务》 — boolBit's blog&url=http://boolbit.info/2017/03/24/分布式事务/&via=http://boolbit.info" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://boolbit.info/2017/03/24/分布式事务/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/02/03/jmeter-jprofiler性能压测/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">jmeter+jprofiler性能压测</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+<div class="comments" id="comments">
+    <div class="ds-thread" data-thread-key="分布式事务" data-title="分布式事务" data-url="http://boolbit.info/2017/03/24/分布式事务/"></div>
+</div>
+<script>
+lazyScripts.push('//cdn.bootcss.com/marked/0.3.6/marked.min.js');
+
+var duoshuoQuery = {short_name:'boolbit', theme: 'none'};
+lazyScripts.push('/js/embed.min.js?v=1.4.2');
+
+
+</script>
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <ul class="reward-items">
+        
+
+        
+    </ul>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+    </div>
+    <div class="bottom">
+        <p>
+            <span>Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a></span>
+            <span>boolBit's blog &copy; 2016 - 2017</span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://boolbit.info/2017/03/24/分布式事务/&title=《分布式事务》 — boolBit's blog&pic=http://boolbit.info/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://boolbit.info/2017/03/24/分布式事务/&title=《分布式事务》 — boolBit's blog&source=积少成多" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://boolbit.info/2017/03/24/分布式事务/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《分布式事务》 — boolBit's blog&url=http://boolbit.info/2017/03/24/分布式事务/&via=http://boolbit.info" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://boolbit.info/2017/03/24/分布式事务/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://boolbit.info/2017/03/24/分布式事务/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+
+lazyScripts.push('//s95.cnzz.com/z_stat.php?id=1260982698&web_id=1260982698')
+
+</script>
+
+<script src="/js/main.min.js?v=1.4.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.4.2" async></script>
+
+
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+</body>
+</html>
